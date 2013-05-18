@@ -28,6 +28,7 @@ import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Calendar;
 import java.util.List;
+import java.util.Stack;
 
 public class MainActivity extends Activity {
 
@@ -36,10 +37,17 @@ public class MainActivity extends Activity {
     private TextView descriptionTextView;
     private ProgressDialog mProgress;
     private Spinner spinner;
+    private Stack<Integer> previousDaysStack;
+    private int currentDay;
+    private boolean backSelection;
+    private static String TAG="GTT";
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
+        previousDaysStack = new Stack<Integer>();
+        currentDay=0;
+        backSelection=false;
         setContentView(R.layout.activity_main);
         descriptionTextView = (TextView) findViewById(R.id.textView1);
         download();
@@ -57,6 +65,18 @@ public class MainActivity extends Activity {
     public void onStop() {
         super.onStop();
         EasyTracker.getInstance().activityStop(this); // Add this method.
+    }
+    
+    @Override
+    public void onBackPressed() {
+        Log.d(TAG, "back button pressed");
+        if(previousDaysStack.size()==0)
+        	super.onBackPressed();
+        else{
+        	Log.d(TAG, "returning to previous day");
+        	backSelection=true;
+        	spinner.setSelection(previousDaysStack.pop());
+        }	
     }
 
     public void addItemsToSpinner() {
@@ -223,6 +243,12 @@ public class MainActivity extends Activity {
                 descriptionTextView.setText(Html.fromHtml(description));
                 descriptionTextView.setMovementMethod(LinkMovementMethod
                     .getInstance());
+                if(!backSelection){
+                	previousDaysStack.push(Integer.valueOf(currentDay));
+                	currentDay=pos;
+                }
+                else
+                	backSelection=false;
             }
         }
 
