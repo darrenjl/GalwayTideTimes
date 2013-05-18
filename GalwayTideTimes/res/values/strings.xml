@@ -1,0 +1,10 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+
+    <string name="app_name">Galway Tide Times</string>
+    <string name="action_refresh">Refresh</string>
+    <string name="action_info">Info</string>
+    <string name="title_activity_info">InfoActivity</string>
+    <string name="info_string">The information provided by this application is provided by the UKHO and downloaded via http://www.tidetimes.org.uk. I would like to thank the website\'s owner.</string>
+
+</resources>
