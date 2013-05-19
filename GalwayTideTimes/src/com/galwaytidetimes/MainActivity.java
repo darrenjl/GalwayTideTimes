@@ -4,11 +4,13 @@ import android.app.Activity;
 import android.app.ProgressDialog;
 import android.content.Context;
 import android.content.Intent;
+import android.content.SharedPreferences;
 import android.net.ConnectivityManager;
 import android.net.NetworkInfo;
 import android.os.AsyncTask;
 import android.os.Bundle;
 import android.text.Html;
+import android.text.format.DateUtils;
 import android.text.method.LinkMovementMethod;
 import android.util.Log;
 import android.view.Menu;
@@ -20,6 +22,9 @@ import org.xmlpull.v1.XmlPullParser;
 import org.xmlpull.v1.XmlPullParserException;
 import org.xmlpull.v1.XmlPullParserFactory;
 
+import java.io.FileInputStream;
+import java.io.FileNotFoundException;
+import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.net.MalformedURLException;
@@ -27,6 +32,7 @@ import java.net.URL;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Calendar;
+import java.util.Date;
 import java.util.List;
 import java.util.Stack;
 
@@ -41,15 +47,22 @@ public class MainActivity extends Activity {
 	private int currentDay;
 	private boolean newlyCreated;
 	private boolean backSelection;
+	private SharedPreferences sharedPref;
 	private static String TAG = "GTT";
+	private static String DOWNLOAD_TIME_PREF = "com.galwaytidetimes.downloadTime";
+	private static String DOWNLOAD_STRING_PREF = "com.galwaytidetimes.downloadString";
+	private static String CURRENT_DAY_PREF = "com.galwaytidetimes.currentDay";
+	private static String TIDE_TIMES_FILENAME = "com.galwaytidetimes.file";
 
 	@Override
 	protected void onCreate(Bundle savedInstanceState) {
 		super.onCreate(savedInstanceState);
 		previousDaysStack = new Stack<Integer>();
-		currentDay = 0;
 		backSelection = false;
 		newlyCreated = true;
+		sharedPref = getPreferences(MODE_PRIVATE);
+		//currentDay = sharedPref.getInt(CURRENT_DAY_PREF, 0);
+		currentDay = 0;
 		setContentView(R.layout.activity_main);
 		descriptionTextView = (TextView) findViewById(R.id.textView1);
 		download();
@@ -67,6 +80,14 @@ public class MainActivity extends Activity {
 	public void onStop() {
 		super.onStop();
 		EasyTracker.getInstance().activityStop(this); // Add this method.
+	}
+
+	@Override
+	protected void onSaveInstanceState(Bundle outState) {
+		// TODO Auto-generated method stub
+		super.onSaveInstanceState(outState);
+		SharedPreferences.Editor editor = sharedPref.edit();
+		editor.putLong(CURRENT_DAY_PREF, new Date().getTime());
 	}
 
 	@Override
@@ -123,6 +144,22 @@ public class MainActivity extends Activity {
 	}
 
 	private void download() {
+		Long downloadTime = sharedPref.getLong(DOWNLOAD_TIME_PREF, 0);
+		Date downloadDate = new Date(downloadTime);
+		SimpleDateFormat fmt = new SimpleDateFormat("yyyyMMdd");
+		if (downloadTime!=0 && fmt.format(downloadDate).equals(fmt.format(new Date()))) {
+			description=sharedPref.getString(DOWNLOAD_STRING_PREF, "No data available.");
+			items = new ArrayList<String>();
+			int size = sharedPref.getInt(DOWNLOAD_STRING_PREF+"size", 0);
+			for(int i=0;i<size;i++)  
+		    {
+				items.add(sharedPref.getString(DOWNLOAD_STRING_PREF + i, "Sorry not available"));
+		    }
+			descriptionTextView.setText(Html.fromHtml(items.get(0)));
+			descriptionTextView.setMovementMethod(LinkMovementMethod
+					.getInstance());
+			return;
+		}
 		if (isNetworkConnected()) {
 			// the init state of progress dialog
 			mProgress = new ProgressDialog(this, ProgressDialog.THEME_HOLO_DARK);
@@ -166,7 +203,7 @@ public class MainActivity extends Activity {
 			AsyncTask<String, Integer, ArrayList<String>> {
 		@Override
 		protected ArrayList<String> doInBackground(String... urls) {
-			items = new ArrayList<String>();
+			ArrayList<String> itemList = new ArrayList<String>();
 			String next = null;
 			try {
 				URL url = new URL(
@@ -189,7 +226,7 @@ public class MainActivity extends Activity {
 								.equalsIgnoreCase("description")) {
 							if (insideItem) {
 								next = xpp.nextText();
-								items.add(System.getProperty("line.separator")
+								itemList.add(System.getProperty("line.separator")
 										+ System.getProperty("line.separator")
 										+ next.substring(204));
 								Log.d("debug", next);
@@ -211,12 +248,13 @@ public class MainActivity extends Activity {
 				e.printStackTrace();
 				return null;
 			}
-			return items;
+			return itemList;
 		}
 
 		// onPostExecute displays the results of the AsyncTask.
 		@Override
 		protected void onPostExecute(ArrayList<String> result) {
+			items=result;
 			if (result != null && result.size() > 0) {
 				description = result.get(0);
 				descriptionTextView.setText(Html.fromHtml(description));
@@ -226,6 +264,17 @@ public class MainActivity extends Activity {
 				if (mProgress.isShowing()) {
 					mProgress.dismiss();
 				}
+				SharedPreferences.Editor editor = sharedPref.edit();
+				editor.putLong(DOWNLOAD_TIME_PREF, new Date().getTime());
+				editor.putString(DOWNLOAD_STRING_PREF, description);
+				editor.putInt(DOWNLOAD_STRING_PREF+"size",result.size());
+				for(int i=0;i<result.size();i++)  
+			    {
+
+					editor.remove(DOWNLOAD_STRING_PREF + i);
+					editor.putString(DOWNLOAD_STRING_PREF + i, result.get(i));  
+			    }
+				editor.commit();
 			} else {
 				Toast.makeText(MainActivity.this,
 						"There was a problem reading from the server.",
@@ -254,7 +303,7 @@ public class MainActivity extends Activity {
 				descriptionTextView.setMovementMethod(LinkMovementMethod
 						.getInstance());
 				if (newlyCreated) {
-					newlyCreated=false;
+					newlyCreated = false;
 					return;
 				}
 				if (!backSelection) {
