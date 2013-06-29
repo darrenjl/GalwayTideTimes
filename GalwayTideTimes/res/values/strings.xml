@@ -6,5 +6,10 @@
     <string name="action_info">Info</string>
     <string name="title_activity_info">InfoActivity</string>
     <string name="info_string">The information provided by this application is provided by the UKHO and downloaded via http://www.tidetimes.org.uk. I would like to thank the website\'s owner.</string>
-
+	<string name="rate_app">Rate %1$s</string>
+	<string name="rate">Rate</string>
+	<string name="remind">Remind Me</string>
+	<string name="no">No</string>
+    <string name="rate_app_text">If you enjoy using %1$s, please take a moment to rate it. Thanks for your support!</string>
+    <string name="google_play_launched">Google Play will be launched, once the app is on the market.</string>
 </resources>

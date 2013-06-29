@@ -18,6 +18,7 @@ import android.view.MenuItem;
 import android.view.View;
 import android.widget.*;
 import com.google.analytics.tracking.android.EasyTracker;
+
 import org.xmlpull.v1.XmlPullParser;
 import org.xmlpull.v1.XmlPullParserException;
 import org.xmlpull.v1.XmlPullParserFactory;
@@ -68,6 +69,7 @@ public class MainActivity extends Activity {
 		download();
 		addItemsToSpinner();
 		spinner.setOnItemSelectedListener(new CustomOnItemSelectedListener());
+		AppLaunchChecker.checkFirstOrRateLaunch(this);
 	}
 
 	@Override
