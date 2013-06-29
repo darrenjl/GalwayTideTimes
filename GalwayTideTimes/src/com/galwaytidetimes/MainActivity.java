@@ -157,9 +157,14 @@ public class MainActivity extends Activity {
 		    {
 				items.add(sharedPref.getString(DOWNLOAD_STRING_PREF + i, "Sorry not available"));
 		    }
-			descriptionTextView.setText(Html.fromHtml(items.get(0)));
+			String des;
+			if(items.get(0).substring(2, 3).equals(">"))
+				des=items.get(0).substring(3);
+			else
+				des=items.get(0).substring(2);
+			descriptionTextView.setText(Html.fromHtml(des));
 			descriptionTextView.setMovementMethod(LinkMovementMethod
-					.getInstance());
+					.getInstance());			
 			return;
 		}
 		if (isNetworkConnected()) {
@@ -181,6 +186,7 @@ public class MainActivity extends Activity {
 		int itemId = item.getItemId();
 		if (itemId == R.id.action_refresh) {
 			download();
+			spinner.setSelection(0);
 			return true;
 		} else if (itemId == R.id.action_info) {
 			intent = new Intent(this, InfoActivity.class);
@@ -258,7 +264,12 @@ public class MainActivity extends Activity {
 		protected void onPostExecute(ArrayList<String> result) {
 			items=result;
 			if (result != null && result.size() > 0) {
-				description = result.get(0);
+				String des;
+				if(result.get(0).substring(2, 3).equals(">"))
+					des=result.get(0).substring(3);
+				else
+					des=result.get(0).substring(2);
+				description = des;
 				descriptionTextView.setText(Html.fromHtml(description));
 				descriptionTextView.setMovementMethod(LinkMovementMethod
 						.getInstance());
@@ -277,6 +288,7 @@ public class MainActivity extends Activity {
 					editor.putString(DOWNLOAD_STRING_PREF + i, result.get(i));  
 			    }
 				editor.commit();
+				spinner.setSelection(0);
 			} else {
 				Toast.makeText(MainActivity.this,
 						"There was a problem reading from the server.",
