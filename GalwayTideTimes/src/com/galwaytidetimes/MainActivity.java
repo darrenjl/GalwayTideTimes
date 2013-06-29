@@ -300,7 +300,12 @@ public class MainActivity extends Activity {
 		public void onItemSelected(AdapterView<?> parent, View view, int pos,
 				long id) {
 			if (items != null && items.size() > 0) {
-				description = items.get(pos);
+				String des;
+				if(items.get(pos).substring(2, 3).equals(">"))
+					des=items.get(pos).substring(3);
+				else
+					des=items.get(pos).substring(2);
+				description = des;
 				descriptionTextView.setText(Html.fromHtml(description));
 				descriptionTextView.setMovementMethod(LinkMovementMethod
 						.getInstance());
