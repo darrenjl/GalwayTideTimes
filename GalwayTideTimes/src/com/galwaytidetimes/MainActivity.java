@@ -62,7 +62,7 @@ public class MainActivity extends Activity {
 		backSelection = false;
 		newlyCreated = true;
 		sharedPref = getPreferences(MODE_PRIVATE);
-		//currentDay = sharedPref.getInt(CURRENT_DAY_PREF, 0);
+		// currentDay = sharedPref.getInt(CURRENT_DAY_PREF, 0);
 		currentDay = 0;
 		setContentView(R.layout.activity_main);
 		descriptionTextView = (TextView) findViewById(R.id.textView1);
@@ -110,19 +110,13 @@ public class MainActivity extends Activity {
 		String formattedDate = df.format(c.getTime());
 		spinner = (Spinner) findViewById(R.id.spinner);
 		List<String> list = new ArrayList<String>();
-		list.add(formattedDate + " (Today)");
-		c.add(Calendar.DAY_OF_MONTH, 1);
-		list.add(df.format(c.getTime()));
-		c.add(Calendar.DAY_OF_MONTH, 1);
-		list.add(df.format(c.getTime()));
-		c.add(Calendar.DAY_OF_MONTH, 1);
-		list.add(df.format(c.getTime()));
-		c.add(Calendar.DAY_OF_MONTH, 1);
-		list.add(df.format(c.getTime()));
-		c.add(Calendar.DAY_OF_MONTH, 1);
-		list.add(df.format(c.getTime()));
-		c.add(Calendar.DAY_OF_MONTH, 1);
-		list.add(df.format(c.getTime()));
+		if (items.size() > 0) {
+			list.add(formattedDate + " (Today)");
+			for (int i = 1; i < items.size(); i++) {
+				c.add(Calendar.DAY_OF_MONTH, 1);
+				list.add(df.format(c.getTime()));
+			}
+		}
 		ArrayAdapter<String> dataAdapter = new ArrayAdapter<String>(this,
 				android.R.layout.simple_spinner_item, list);
 		dataAdapter
@@ -149,22 +143,28 @@ public class MainActivity extends Activity {
 		Long downloadTime = sharedPref.getLong(DOWNLOAD_TIME_PREF, 0);
 		Date downloadDate = new Date(downloadTime);
 		SimpleDateFormat fmt = new SimpleDateFormat("yyyyMMdd");
-		if (downloadTime!=0 && fmt.format(downloadDate).equals(fmt.format(new Date()))) {
-			description=sharedPref.getString(DOWNLOAD_STRING_PREF, "No data available.");
+		if (downloadTime != 0
+				&& fmt.format(downloadDate).equals(fmt.format(new Date()))) {
+			description = sharedPref.getString(DOWNLOAD_STRING_PREF,
+					"No data available.");
 			items = new ArrayList<String>();
-			int size = sharedPref.getInt(DOWNLOAD_STRING_PREF+"size", 0);
-			for(int i=0;i<size;i++)  
-		    {
-				items.add(sharedPref.getString(DOWNLOAD_STRING_PREF + i, "Sorry not available"));
-		    }
+			int size = sharedPref.getInt(DOWNLOAD_STRING_PREF + "size", 0);
+			for (int i = 0; i < size; i++) {
+				items.add(sharedPref.getString(DOWNLOAD_STRING_PREF + i,
+						"Sorry not available"));
+			}
 			String des;
-			if(items.get(0).substring(2, 3).equals(">"))
-				des=items.get(0).substring(3);
+			if (items.get(0).substring(2, 3).equals(">"))
+				des = items.get(0).substring(3);
 			else
-				des=items.get(0).substring(2);
+				des = items.get(0).substring(2);
 			descriptionTextView.setText(Html.fromHtml(des));
 			descriptionTextView.setMovementMethod(LinkMovementMethod
-					.getInstance());			
+					.getInstance());
+			if(items.size()<7)
+				Toast.makeText(MainActivity.this,
+					"No more information available, please try again later.",
+					Toast.LENGTH_LONG).show();
 			return;
 		}
 		if (isNetworkConnected()) {
@@ -234,7 +234,8 @@ public class MainActivity extends Activity {
 								.equalsIgnoreCase("description")) {
 							if (insideItem) {
 								next = xpp.nextText();
-								itemList.add(System.getProperty("line.separator")
+								itemList.add(System
+										.getProperty("line.separator")
 										+ System.getProperty("line.separator")
 										+ next.substring(204));
 								Log.d("debug", next);
@@ -262,13 +263,19 @@ public class MainActivity extends Activity {
 		// onPostExecute displays the results of the AsyncTask.
 		@Override
 		protected void onPostExecute(ArrayList<String> result) {
-			items=result;
+			items = result;
+			
 			if (result != null && result.size() > 0) {
+				addItemsToSpinner();
+				if(result.size()<7)
+					Toast.makeText(MainActivity.this,
+						"No more information available, please try again later.",
+						Toast.LENGTH_LONG).show();
 				String des;
-				if(result.get(0).substring(2, 3).equals(">"))
-					des=result.get(0).substring(3);
+				if (result.get(0).substring(2, 3).equals(">"))
+					des = result.get(0).substring(3);
 				else
-					des=result.get(0).substring(2);
+					des = result.get(0).substring(2);
 				description = des;
 				descriptionTextView.setText(Html.fromHtml(description));
 				descriptionTextView.setMovementMethod(LinkMovementMethod
@@ -280,13 +287,12 @@ public class MainActivity extends Activity {
 				SharedPreferences.Editor editor = sharedPref.edit();
 				editor.putLong(DOWNLOAD_TIME_PREF, new Date().getTime());
 				editor.putString(DOWNLOAD_STRING_PREF, description);
-				editor.putInt(DOWNLOAD_STRING_PREF+"size",result.size());
-				for(int i=0;i<result.size();i++)  
-			    {
+				editor.putInt(DOWNLOAD_STRING_PREF + "size", result.size());
+				for (int i = 0; i < result.size(); i++) {
 
 					editor.remove(DOWNLOAD_STRING_PREF + i);
-					editor.putString(DOWNLOAD_STRING_PREF + i, result.get(i));  
-			    }
+					editor.putString(DOWNLOAD_STRING_PREF + i, result.get(i));
+				}
 				editor.commit();
 				spinner.setSelection(0);
 			} else {
@@ -313,10 +319,10 @@ public class MainActivity extends Activity {
 				long id) {
 			if (items != null && items.size() > 0) {
 				String des;
-				if(items.get(pos).substring(2, 3).equals(">"))
-					des=items.get(pos).substring(3);
+				if (items.get(pos).substring(2, 3).equals(">"))
+					des = items.get(pos).substring(3);
 				else
-					des=items.get(pos).substring(2);
+					des = items.get(pos).substring(2);
 				description = des;
 				descriptionTextView.setText(Html.fromHtml(description));
 				descriptionTextView.setMovementMethod(LinkMovementMethod
