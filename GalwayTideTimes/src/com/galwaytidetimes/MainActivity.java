@@ -67,8 +67,6 @@ public class MainActivity extends Activity {
 		setContentView(R.layout.activity_main);
 		descriptionTextView = (TextView) findViewById(R.id.textView1);
 		download();
-		addItemsToSpinner();
-		spinner.setOnItemSelectedListener(new CustomOnItemSelectedListener());
 		AppLaunchChecker.checkFirstOrRateLaunch(this);
 	}
 
@@ -122,6 +120,7 @@ public class MainActivity extends Activity {
 		dataAdapter
 				.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item);
 		spinner.setAdapter(dataAdapter);
+		spinner.setOnItemSelectedListener(new CustomOnItemSelectedListener());
 	}
 
 	private InputStream getInputStream(URL url) {
