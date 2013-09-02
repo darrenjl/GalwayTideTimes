@@ -54,6 +54,7 @@ public class MainActivity extends Activity {
 	private static String DOWNLOAD_STRING_PREF = "com.galwaytidetimes.downloadString";
 	private static String CURRENT_DAY_PREF = "com.galwaytidetimes.currentDay";
 	private static String TIDE_TIMES_FILENAME = "com.galwaytidetimes.file";
+	public boolean refresh=false;
 
 	@Override
 	protected void onCreate(Bundle savedInstanceState) {
@@ -160,10 +161,12 @@ public class MainActivity extends Activity {
 			descriptionTextView.setText(Html.fromHtml(des));
 			descriptionTextView.setMovementMethod(LinkMovementMethod
 					.getInstance());
+			addItemsToSpinner();
 			if(items.size()<7)
 				Toast.makeText(MainActivity.this,
 					"No more information available, please try again later.",
 					Toast.LENGTH_LONG).show();
+			
 			return;
 		}
 		if (isNetworkConnected()) {
@@ -185,7 +188,7 @@ public class MainActivity extends Activity {
 		int itemId = item.getItemId();
 		if (itemId == R.id.action_refresh) {
 			download();
-			spinner.setSelection(0);
+//			spinner.setSelection(0);
 			return true;
 		} else if (itemId == R.id.action_info) {
 			intent = new Intent(this, InfoActivity.class);
