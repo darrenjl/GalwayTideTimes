@@ -240,7 +240,7 @@ public class MainActivity extends Activity {
 								itemList.add(System
 										.getProperty("line.separator")
 										+ System.getProperty("line.separator")
-										+ next.substring(204));
+										+ next.substring(208));
 								Log.d("debug", next);
 							}
 						} else if (eventType == XmlPullParser.END_TAG
