@@ -106,6 +106,7 @@ public class MainActivity extends Activity {
 	public void addItemsToSpinner() {
 		Calendar c = Calendar.getInstance();
 		SimpleDateFormat df = new SimpleDateFormat("dd-MMM-yyyy");
+		SimpleDateFormat df2 = new SimpleDateFormat("dd-MMM-yyyy (EEE)");
 		String formattedDate = df.format(c.getTime());
 		spinner = (Spinner) findViewById(R.id.spinner);
 		List<String> list = new ArrayList<String>();
@@ -113,7 +114,7 @@ public class MainActivity extends Activity {
 			list.add(formattedDate + " (Today)");
 			for (int i = 1; i < items.size(); i++) {
 				c.add(Calendar.DAY_OF_MONTH, 1);
-				list.add(df.format(c.getTime()));
+				list.add(df2.format(c.getTime()));
 			}
 		}
 		ArrayAdapter<String> dataAdapter = new ArrayAdapter<String>(this,
