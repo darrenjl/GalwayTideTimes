@@ -1,13 +1,11 @@
 package com.galwaytidetimes;
 
-import android.app.Activity;
 import android.app.ProgressDialog;
 import android.content.Context;
 import android.content.Intent;
 import android.content.SharedPreferences;
 import android.net.ConnectivityManager;
 import android.net.NetworkInfo;
-import android.os.AsyncTask;
 import android.os.Bundle;
 import android.text.Html;
 import android.text.method.LinkMovementMethod;
@@ -19,7 +17,6 @@ import android.widget.TextView;
 import android.widget.Toast;
 
 import com.galwaytidetimes.service.TidesService;
-import com.google.analytics.tracking.android.EasyTracker;
 
 import org.androidannotations.annotations.AfterViews;
 import org.androidannotations.annotations.Bean;
@@ -27,13 +24,9 @@ import org.androidannotations.annotations.EActivity;
 import org.androidannotations.annotations.OptionsItem;
 import org.androidannotations.annotations.OptionsMenu;
 import org.androidannotations.annotations.ViewById;
-import org.xmlpull.v1.XmlPullParser;
-import org.xmlpull.v1.XmlPullParserException;
-import org.xmlpull.v1.XmlPullParserFactory;
 
 import java.io.IOException;
 import java.io.InputStream;
-import java.net.MalformedURLException;
 import java.net.URL;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
@@ -41,8 +34,6 @@ import java.util.Calendar;
 import java.util.Date;
 import java.util.List;
 import java.util.Stack;
-import java.util.regex.Matcher;
-import java.util.regex.Pattern;
 
 @EActivity(R.layout.activity_main)
 @OptionsMenu(R.menu.main)
@@ -64,12 +55,9 @@ public class MainActivity extends TrackedActivity {
     private boolean newlyCreated;
     private boolean backSelection;
     private SharedPreferences sharedPref;
-    private static String TAG = "GTT";
     private static String DOWNLOAD_TIME_PREF = "com.galwaytidetimes.downloadTime";
     private static String DOWNLOAD_STRING_PREF = "com.galwaytidetimes.downloadString";
     private static String CURRENT_DAY_PREF = "com.galwaytidetimes.currentDay";
-    private static String TIDE_TIMES_FILENAME = "com.galwaytidetimes.file";
-    public boolean refresh = false;
 
     @AfterViews
     public void initialise(){
@@ -77,7 +65,6 @@ public class MainActivity extends TrackedActivity {
         backSelection = false;
         newlyCreated = true;
         sharedPref = getPreferences(MODE_PRIVATE);
-        // currentDay = sharedPref.getInt(CURRENT_DAY_PREF, 0);
         currentDay = 0;
         download();
         AppLaunchChecker.checkFirstOrRateLaunch(this);
@@ -122,14 +109,6 @@ public class MainActivity extends TrackedActivity {
         spinner.setOnItemSelectedListener(new CustomOnItemSelectedListener());
     }
 
-    private InputStream getInputStream(URL url) {
-        try {
-            return url.openConnection().getInputStream();
-        } catch (IOException e) {
-            return null;
-        }
-    }
-
     private void download() {
         Long downloadTime = sharedPref.getLong(DOWNLOAD_TIME_PREF, 0);
         Date downloadDate = new Date(downloadTime);
@@ -161,7 +140,7 @@ public class MainActivity extends TrackedActivity {
             mProgress.setTitle("Loading");
             mProgress.setMessage("Please wait...");
             mProgress.show();
-            new DownloadRss().execute("");
+            tidesService.downloadTideTimes();
         } else {
             Toast.makeText(this, "No working internet connection available.",
                     Toast.LENGTH_LONG).show();
@@ -183,115 +162,51 @@ public class MainActivity extends TrackedActivity {
         ConnectivityManager cm = (ConnectivityManager) getSystemService(Context.CONNECTIVITY_SERVICE);
         NetworkInfo ni = cm.getActiveNetworkInfo();
         if (ni == null) {
-            // There are no active networks.
             return false;
         } else
             return true;
     }
 
-    private class DownloadRss extends
-            AsyncTask<String, Integer, ArrayList<String>> {
-        @Override
-        protected ArrayList<String> doInBackground(String... urls) {
-            ArrayList<String> itemList = new ArrayList<String>();
-            String next = null;
-            try {
-                URL url = new URL(
-                        "http://www.tidetimes.org.uk/galway-tide-times-7.rss");
-                XmlPullParserFactory factory = XmlPullParserFactory
-                        .newInstance();
-                factory.setNamespaceAware(false);
-                XmlPullParser xpp = factory.newPullParser();
-                xpp.setInput(getInputStream(url), "UTF_8");
-                boolean insideItem = false;
+    public void handleDownloadResults(ArrayList<String> result) {
+        items = result;
 
-                // Returns the type of current event: START_TAG, END_TAG, etc..
-                int eventType = xpp.getEventType();
-                while (eventType != XmlPullParser.END_DOCUMENT) {
-                    if (eventType == XmlPullParser.START_TAG) {
-
-                        if (xpp.getName().equalsIgnoreCase("item")) {
-                            insideItem = true;
-                        } else if (xpp.getName()
-                                .equalsIgnoreCase("description")) {
-                            if (insideItem) {
-                                next = xpp.nextText();
-                                Pattern ptrn = Pattern.compile("(\\d{2}:\\d{2}\\s-\\s)(Low|High)(\\sTide\\s\\(\\d.\\d{2}m\\))");
-                                Matcher mtchr = ptrn.matcher(next);
-                                StringBuilder timesStringBuilder = new StringBuilder();
-                                while (mtchr.find()) {
-                                    String match = mtchr.group();
-                                    if(timesStringBuilder.length()!=0) {
-                                        timesStringBuilder.append("<br>");
-                                    }
-                                    timesStringBuilder.append(match);
-                                }
-                                String item = timesStringBuilder.toString();
-                                itemList.add(item);
-                            }
-                        } else if (eventType == XmlPullParser.END_TAG
-                                && xpp.getName().equalsIgnoreCase("item")) {
-                            insideItem = false;
-                        }
-                    }
-                    eventType = xpp.next(); // move to next element
-                }
-            } catch (MalformedURLException e) {
-                e.printStackTrace();
-            } catch (XmlPullParserException e) {
-                e.printStackTrace();
-            } catch (IOException e) {
-                e.printStackTrace();
-            } catch (IllegalArgumentException e) {
-                e.printStackTrace();
-                return null;
-            }
-            return itemList;
-        }
-
-        // onPostExecute displays the results of the AsyncTask.
-        @Override
-        protected void onPostExecute(ArrayList<String> result) {
-            items = result;
-
-            if (result != null && result.size() > 0) {
-                addItemsToSpinner();
-                if (result.size() < 7)
-                    Toast.makeText(MainActivity.this,
-                            "No more information available, please try again later.",
-                            Toast.LENGTH_LONG).show();
-                description = result.get(0);
-                descriptionTextView.setText(Html.fromHtml(description));
-                descriptionTextView.setMovementMethod(LinkMovementMethod
-                        .getInstance());
-                if (mProgress.isShowing()) {
-                    mProgress.dismiss();
-                }
-                SharedPreferences.Editor editor = sharedPref.edit();
-                editor.putLong(DOWNLOAD_TIME_PREF, new Date().getTime());
-                editor.putString(DOWNLOAD_STRING_PREF, description);
-                editor.putInt(DOWNLOAD_STRING_PREF + "size", result.size());
-                for (int i = 0; i < result.size(); i++) {
-
-                    editor.remove(DOWNLOAD_STRING_PREF + i);
-                    editor.putString(DOWNLOAD_STRING_PREF + i, result.get(i));
-                }
-                editor.commit();
-                spinner.setSelection(0);
-            } else {
+        if (result != null && result.size() > 0) {
+            addItemsToSpinner();
+            if (result.size() < 7)
                 Toast.makeText(MainActivity.this,
-                        "There was a problem reading from the server.",
+                        "No more information available, please try again later.",
                         Toast.LENGTH_LONG).show();
-                description = "No data could be read from the sever, please refresh to try again.";
-                descriptionTextView.setText(Html.fromHtml(description));
-                descriptionTextView.setMovementMethod(LinkMovementMethod
-                        .getInstance());
-                if (mProgress.isShowing()) {
-                    mProgress.dismiss();
-                }
+            description = result.get(0);
+            descriptionTextView.setText(Html.fromHtml(description));
+            descriptionTextView.setMovementMethod(LinkMovementMethod
+                    .getInstance());
+            if (mProgress.isShowing()) {
+                mProgress.dismiss();
             }
+            SharedPreferences.Editor editor = sharedPref.edit();
+            editor.putLong(DOWNLOAD_TIME_PREF, new Date().getTime());
+            editor.putString(DOWNLOAD_STRING_PREF, description);
+            editor.putInt(DOWNLOAD_STRING_PREF + "size", result.size());
+            for (int i = 0; i < result.size(); i++) {
 
+                editor.remove(DOWNLOAD_STRING_PREF + i);
+                editor.putString(DOWNLOAD_STRING_PREF + i, result.get(i));
+            }
+            editor.commit();
+            spinner.setSelection(0);
+        } else {
+            Toast.makeText(MainActivity.this,
+                    "There was a problem reading from the server.",
+                    Toast.LENGTH_LONG).show();
+            description = "No data could be read from the sever, please refresh to try again.";
+            descriptionTextView.setText(Html.fromHtml(description));
+            descriptionTextView.setMovementMethod(LinkMovementMethod
+                    .getInstance());
+            if (mProgress.isShowing()) {
+                mProgress.dismiss();
+            }
         }
+
     }
 
     private class CustomOnItemSelectedListener implements
