@@ -11,7 +11,6 @@ import android.os.AsyncTask;
 import android.os.Bundle;
 import android.text.Html;
 import android.text.method.LinkMovementMethod;
-import android.util.Log;
 import android.view.Menu;
 import android.view.MenuItem;
 import android.view.View;
@@ -21,9 +20,11 @@ import android.widget.Spinner;
 import android.widget.TextView;
 import android.widget.Toast;
 
+import com.galwaytidetimes.service.TidesService;
 import com.google.analytics.tracking.android.EasyTracker;
 
 import org.androidannotations.annotations.AfterViews;
+import org.androidannotations.annotations.Bean;
 import org.androidannotations.annotations.EActivity;
 import org.androidannotations.annotations.ViewById;
 import org.xmlpull.v1.XmlPullParser;
@@ -48,6 +49,9 @@ public class MainActivity extends Activity {
 
     private String description;
     private ArrayList<String> items;
+
+    @Bean
+    TidesService tidesService;
 
     @ViewById(R.id.textView1)
     TextView descriptionTextView;
@@ -93,7 +97,6 @@ public class MainActivity extends Activity {
 
     @Override
     protected void onSaveInstanceState(Bundle outState) {
-        // TODO Auto-generated method stub
         super.onSaveInstanceState(outState);
         SharedPreferences.Editor editor = sharedPref.edit();
         editor.putLong(CURRENT_DAY_PREF, new Date().getTime());
@@ -101,11 +104,9 @@ public class MainActivity extends Activity {
 
     @Override
     public void onBackPressed() {
-        Log.d(TAG, "back button pressed");
         if (previousDaysStack.size() == 0)
             super.onBackPressed();
         else {
-            Log.d(TAG, "returning to previous day");
             backSelection = true;
             spinner.setSelection(previousDaysStack.pop());
         }
@@ -249,10 +250,8 @@ public class MainActivity extends Activity {
                                         timesStringBuilder.append("<br>");
                                     }
                                     timesStringBuilder.append(match);
-                                    Log.d("item", "Match = <" + match + ">");
                                 }
                                 String item = timesStringBuilder.toString();
-                                Log.d("item", item);
                                 itemList.add(item);
                             }
                         } else if (eventType == XmlPullParser.END_TAG
@@ -344,7 +343,6 @@ public class MainActivity extends Activity {
 
         @Override
         public void onNothingSelected(AdapterView<?> arg0) {
-            // TODO Auto-generated method stub
         }
 
     }
