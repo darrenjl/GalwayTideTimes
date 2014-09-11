@@ -1,0 +1,36 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<module type="JAVA_MODULE" version="4">
+  <component name="FacetManager">
+    <facet type="android" name="Android">
+      <configuration>
+        <option name="GEN_FOLDER_RELATIVE_PATH_APT" value="/../../GalwayTideTimes/gen" />
+        <option name="GEN_FOLDER_RELATIVE_PATH_AIDL" value="/../../GalwayTideTimes/gen" />
+        <option name="MANIFEST_FILE_RELATIVE_PATH" value="/../../GalwayTideTimes/AndroidManifest.xml" />
+        <option name="RES_FOLDER_RELATIVE_PATH" value="/../../GalwayTideTimes/res" />
+        <option name="ASSETS_FOLDER_RELATIVE_PATH" value="/../../GalwayTideTimes/assets" />
+        <option name="LIBS_FOLDER_RELATIVE_PATH" value="/../../GalwayTideTimes/libs" />
+        <option name="PROGUARD_LOGS_FOLDER_RELATIVE_PATH" value="/../../GalwayTideTimes/proguard_logs" />
+      </configuration>
+    </facet>
+  </component>
+  <component name="NewModuleRootManager" inherit-compiler-output="false">
+    <output url="file://production/GalwayTideTimes" />
+    <output-test url="file://test/GalwayTideTimes" />
+    <exclude-output />
+    <content url="file://$MODULE_DIR$">
+      <sourceFolder url="file://$MODULE_DIR$/gen" isTestSource="false" generated="true" />
+    </content>
+    <orderEntry type="module-library">
+      <library>
+        <CLASSES>
+          <root url="jar://$USER_HOME$/dev/androidannotations-bundle-3.0.1/androidannotations-api-3.0.1.jar!/" />
+        </CLASSES>
+        <JAVADOC />
+        <SOURCES />
+      </library>
+    </orderEntry>
+    <orderEntry type="jdk" jdkName="Android API 17 Platform" jdkType="Android SDK" />
+    <orderEntry type="sourceFolder" forTests="false" />
+  </component>
+</module>
+
