@@ -15,7 +15,7 @@ import org.androidannotations.annotations.ViewById;
  * Created by Darren on 16/05/13.
  */
 @EActivity(R.layout.activity_info)
-public class InfoActivity extends Activity {
+public class InfoActivity extends TrackedActivity {
     @ViewById(R.id.info_text_view)
     TextView descriptionTextView;
 
@@ -24,17 +24,5 @@ public class InfoActivity extends Activity {
         descriptionTextView.setText(Html.fromHtml(getString(R.string.info_string)));
         descriptionTextView.setMovementMethod(LinkMovementMethod
                 .getInstance());
-    }
-
-    @Override
-    public void onStart() {
-        super.onStart();
-        EasyTracker.getInstance().activityStart(this); // Add this method.
-    }
-
-    @Override
-    public void onStop() {
-        super.onStop();
-        EasyTracker.getInstance().activityStop(this); // Add this method.
     }
 }

@@ -46,7 +46,7 @@ import java.util.regex.Pattern;
 
 @EActivity(R.layout.activity_main)
 @OptionsMenu(R.menu.main)
-public class MainActivity extends Activity {
+public class MainActivity extends TrackedActivity {
 
     private String description;
     private ArrayList<String> items;
@@ -81,19 +81,6 @@ public class MainActivity extends Activity {
         currentDay = 0;
         download();
         AppLaunchChecker.checkFirstOrRateLaunch(this);
-    }
-
-
-    @Override
-    public void onStart() {
-        super.onStart();
-        EasyTracker.getInstance().activityStart(this); // Add this method.
-    }
-
-    @Override
-    public void onStop() {
-        super.onStop();
-        EasyTracker.getInstance().activityStop(this); // Add this method.
     }
 
     @Override
