@@ -11,8 +11,6 @@ import android.os.AsyncTask;
 import android.os.Bundle;
 import android.text.Html;
 import android.text.method.LinkMovementMethod;
-import android.view.Menu;
-import android.view.MenuItem;
 import android.view.View;
 import android.widget.AdapterView;
 import android.widget.ArrayAdapter;
@@ -26,6 +24,8 @@ import com.google.analytics.tracking.android.EasyTracker;
 import org.androidannotations.annotations.AfterViews;
 import org.androidannotations.annotations.Bean;
 import org.androidannotations.annotations.EActivity;
+import org.androidannotations.annotations.OptionsItem;
+import org.androidannotations.annotations.OptionsMenu;
 import org.androidannotations.annotations.ViewById;
 import org.xmlpull.v1.XmlPullParser;
 import org.xmlpull.v1.XmlPullParserException;
@@ -45,6 +45,7 @@ import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
 @EActivity(R.layout.activity_main)
+@OptionsMenu(R.menu.main)
 public class MainActivity extends Activity {
 
     private String description;
@@ -142,13 +143,6 @@ public class MainActivity extends Activity {
         }
     }
 
-    @Override
-    public boolean onCreateOptionsMenu(Menu menu) {
-        // Inflate the menu; this adds items to the action bar if it is present.
-        getMenuInflater().inflate(R.menu.main, menu);
-        return true;
-    }
-
     private void download() {
         Long downloadTime = sharedPref.getLong(DOWNLOAD_TIME_PREF, 0);
         Date downloadDate = new Date(downloadTime);
@@ -187,21 +181,15 @@ public class MainActivity extends Activity {
         }
     }
 
-    @Override
-    public boolean onOptionsItemSelected(MenuItem item) {
-        Intent intent;
-        int itemId = item.getItemId();
-        if (itemId == R.id.action_refresh) {
-            download();
-//			spinner.setSelection(0);
-            return true;
-        } else if (itemId == R.id.action_info) {
-            intent = new Intent(this, InfoActivity_.class);
-            startActivity(intent);
-            return true;
-        } else {
-            return super.onOptionsItemSelected(item);
-        }
+    @OptionsItem
+    void action_infoSelected() {
+        Intent intent = new Intent(this, InfoActivity_.class);
+        startActivity(intent);
+    }
+
+    @OptionsItem
+    void action_refreshSelected() {
+        download();
     }
 
     private boolean isNetworkConnected() {
