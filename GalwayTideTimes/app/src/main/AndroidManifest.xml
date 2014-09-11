@@ -27,7 +27,7 @@
             </intent-filter>
         </activity>
         <activity
-            android:name=".InfoActivity"
+            android:name=".InfoActivity_"
             android:label="@string/app_name" >
         </activity>
     </application>

@@ -190,7 +190,7 @@ public class MainActivity extends Activity {
 //			spinner.setSelection(0);
             return true;
         } else if (itemId == R.id.action_info) {
-            intent = new Intent(this, InfoActivity.class);
+            intent = new Intent(this, InfoActivity_.class);
             startActivity(intent);
             return true;
         } else {
