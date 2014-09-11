@@ -23,6 +23,9 @@ import android.widget.Toast;
 
 import com.google.analytics.tracking.android.EasyTracker;
 
+import org.androidannotations.annotations.AfterViews;
+import org.androidannotations.annotations.EActivity;
+import org.androidannotations.annotations.ViewById;
 import org.xmlpull.v1.XmlPullParser;
 import org.xmlpull.v1.XmlPullParserException;
 import org.xmlpull.v1.XmlPullParserFactory;
@@ -40,11 +43,15 @@ import java.util.Stack;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
+@EActivity(R.layout.activity_main)
 public class MainActivity extends Activity {
 
     private String description;
     private ArrayList<String> items;
-    private TextView descriptionTextView;
+
+    @ViewById(R.id.textView1)
+    TextView descriptionTextView;
+
     private ProgressDialog mProgress;
     private Spinner spinner;
     private Stack<Integer> previousDaysStack;
@@ -59,20 +66,18 @@ public class MainActivity extends Activity {
     private static String TIDE_TIMES_FILENAME = "com.galwaytidetimes.file";
     public boolean refresh = false;
 
-    @Override
-    protected void onCreate(Bundle savedInstanceState) {
-        super.onCreate(savedInstanceState);
+    @AfterViews
+    public void initialise(){
         previousDaysStack = new Stack<Integer>();
         backSelection = false;
         newlyCreated = true;
         sharedPref = getPreferences(MODE_PRIVATE);
         // currentDay = sharedPref.getInt(CURRENT_DAY_PREF, 0);
         currentDay = 0;
-        setContentView(R.layout.activity_main);
-        descriptionTextView = (TextView) findViewById(R.id.textView1);
         download();
         AppLaunchChecker.checkFirstOrRateLaunch(this);
     }
+
 
     @Override
     public void onStart() {
