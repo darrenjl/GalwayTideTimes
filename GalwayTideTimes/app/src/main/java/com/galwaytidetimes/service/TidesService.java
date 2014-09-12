@@ -20,7 +20,7 @@ import java.util.regex.Pattern;
 
 import static org.androidannotations.annotations.EBean.Scope.Singleton;
 
-@EBean(scope = Singleton)
+@EBean
 public class TidesService {
 
     @RootContext
