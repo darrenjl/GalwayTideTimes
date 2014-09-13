@@ -60,7 +60,7 @@ public class MainActivity extends TrackedActivity {
     private static String CURRENT_DAY_PREF = "com.galwaytidetimes.currentDay";
 
     @AfterViews
-    public void initialise(){
+    public void initialise() {
         previousDaysStack = new Stack<Integer>();
         backSelection = false;
         newlyCreated = true;
