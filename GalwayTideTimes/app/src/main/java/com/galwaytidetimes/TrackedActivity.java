@@ -1,6 +1,7 @@
 package com.galwaytidetimes;
 
 import android.app.Activity;
+import android.support.v7.graphics.Palette;
 
 import com.google.analytics.tracking.android.EasyTracker;
 

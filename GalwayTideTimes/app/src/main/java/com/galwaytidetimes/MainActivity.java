@@ -7,15 +7,19 @@ import android.content.SharedPreferences;
 import android.net.ConnectivityManager;
 import android.net.NetworkInfo;
 import android.os.Bundle;
+import android.support.v7.graphics.Palette;
 import android.text.Html;
 import android.text.method.LinkMovementMethod;
+import android.util.Log;
 import android.view.View;
 import android.widget.AdapterView;
 import android.widget.ArrayAdapter;
+import android.widget.RelativeLayout;
 import android.widget.Spinner;
 import android.widget.TextView;
 import android.widget.Toast;
 
+import com.galwaytidetimes.service.ColourService;
 import com.galwaytidetimes.service.TidesService;
 
 import org.androidannotations.annotations.AfterViews;
@@ -23,6 +27,7 @@ import org.androidannotations.annotations.Bean;
 import org.androidannotations.annotations.EActivity;
 import org.androidannotations.annotations.OptionsItem;
 import org.androidannotations.annotations.OptionsMenu;
+import org.androidannotations.annotations.UiThread;
 import org.androidannotations.annotations.ViewById;
 
 import java.io.IOException;
@@ -47,6 +52,9 @@ public class MainActivity extends TrackedActivity {
 
     @ViewById(R.id.textView1)
     TextView descriptionTextView;
+    
+    @ViewById(R.id.main_layout)
+    RelativeLayout mainLayout;
 
     private ProgressDialog mProgress;
     private Spinner spinner;
