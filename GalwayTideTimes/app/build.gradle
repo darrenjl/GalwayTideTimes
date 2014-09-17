@@ -25,11 +25,11 @@ android {
     buildToolsVersion "20.0.0"
 
     defaultConfig {
-        applicationId "galwaytidetimes.com.galwaytidetimes"
+        applicationId "com.galwaytidetimes"
         minSdkVersion 10
         targetSdkVersion 20
-        versionCode 1
-        versionName "1.0"
+        versionCode 11
+        versionName "2.8"
     }
     buildTypes {
         release {
