@@ -18,8 +18,6 @@ import java.util.ArrayList;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
-import static org.androidannotations.annotations.EBean.Scope.Singleton;
-
 @EBean
 public class TidesService {
 
@@ -36,11 +34,11 @@ public class TidesService {
 
     @Background
     public void downloadTideTimes() {
-        ArrayList<String> itemList = new ArrayList<String>();
-        String next = null;
+        ArrayList<String> itemList = new ArrayList<>();
+        String next;
         try {
             URL url = new URL(
-                    "http://www.tidetimes.org.uk/galway-tide-times-7.rss");
+                    "https://www.tidetimes.org.uk/galway-tide-times-7.rss");
             XmlPullParserFactory factory = XmlPullParserFactory
                     .newInstance();
             factory.setNamespaceAware(false);

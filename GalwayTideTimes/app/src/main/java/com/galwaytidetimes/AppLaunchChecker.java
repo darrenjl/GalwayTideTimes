@@ -38,7 +38,7 @@ public class AppLaunchChecker {
 			}
 		}
 
-		editor.commit();
+		editor.apply();
 		if (launch_count == 1)
 			return true;
 		else

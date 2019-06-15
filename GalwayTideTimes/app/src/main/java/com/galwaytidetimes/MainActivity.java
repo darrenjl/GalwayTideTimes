@@ -1,5 +1,6 @@
 package com.galwaytidetimes;
 
+import android.app.Activity;
 import android.app.ProgressDialog;
 import android.content.Context;
 import android.content.Intent;
@@ -7,10 +8,8 @@ import android.content.SharedPreferences;
 import android.net.ConnectivityManager;
 import android.net.NetworkInfo;
 import android.os.Bundle;
-import android.support.v7.graphics.Palette;
 import android.text.Html;
 import android.text.method.LinkMovementMethod;
-import android.util.Log;
 import android.view.View;
 import android.widget.AdapterView;
 import android.widget.ArrayAdapter;
@@ -19,7 +18,6 @@ import android.widget.Spinner;
 import android.widget.TextView;
 import android.widget.Toast;
 
-import com.galwaytidetimes.service.ColourService;
 import com.galwaytidetimes.service.TidesService;
 
 import org.androidannotations.annotations.AfterViews;
@@ -27,12 +25,8 @@ import org.androidannotations.annotations.Bean;
 import org.androidannotations.annotations.EActivity;
 import org.androidannotations.annotations.OptionsItem;
 import org.androidannotations.annotations.OptionsMenu;
-import org.androidannotations.annotations.UiThread;
 import org.androidannotations.annotations.ViewById;
 
-import java.io.IOException;
-import java.io.InputStream;
-import java.net.URL;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Calendar;
@@ -42,7 +36,7 @@ import java.util.Stack;
 
 @EActivity(R.layout.activity_main)
 @OptionsMenu(R.menu.main)
-public class MainActivity extends TrackedActivity {
+public class MainActivity extends Activity {
 
     private String description;
     private ArrayList<String> items;
@@ -69,7 +63,7 @@ public class MainActivity extends TrackedActivity {
 
     @AfterViews
     public void initialise() {
-        previousDaysStack = new Stack<Integer>();
+        previousDaysStack = new Stack<>();
         backSelection = false;
         newlyCreated = true;
         sharedPref = getPreferences(MODE_PRIVATE);
@@ -83,6 +77,7 @@ public class MainActivity extends TrackedActivity {
         super.onSaveInstanceState(outState);
         SharedPreferences.Editor editor = sharedPref.edit();
         editor.putLong(CURRENT_DAY_PREF, new Date().getTime());
+        editor.apply();
     }
 
     @Override
@@ -100,8 +95,8 @@ public class MainActivity extends TrackedActivity {
         SimpleDateFormat df = new SimpleDateFormat("dd-MMM-yyyy");
         SimpleDateFormat df2 = new SimpleDateFormat("dd-MMM-yyyy (EEE)");
         String formattedDate = df.format(c.getTime());
-        spinner = (Spinner) findViewById(R.id.spinner);
-        List<String> list = new ArrayList<String>();
+        spinner = findViewById(R.id.spinner);
+        List<String> list = new ArrayList<>();
         if (items.size() > 0) {
             list.add(formattedDate + " (Today)");
             for (int i = 1; i < items.size(); i++) {
@@ -109,7 +104,7 @@ public class MainActivity extends TrackedActivity {
                 list.add(df2.format(c.getTime()));
             }
         }
-        ArrayAdapter<String> dataAdapter = new ArrayAdapter<String>(this,
+        ArrayAdapter<String> dataAdapter = new ArrayAdapter<>(this,
                 android.R.layout.simple_spinner_item, list);
         dataAdapter
                 .setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item);
@@ -125,7 +120,7 @@ public class MainActivity extends TrackedActivity {
                 && fmt.format(downloadDate).equals(fmt.format(new Date()))) {
             description = sharedPref.getString(DOWNLOAD_STRING_PREF,
                     "No data available.");
-            items = new ArrayList<String>();
+            items = new ArrayList<>();
             int size = sharedPref.getInt(DOWNLOAD_STRING_PREF + "size", 0);
             for (int i = 0; i < size; i++) {
                 items.add(sharedPref.getString(DOWNLOAD_STRING_PREF + i,
@@ -158,6 +153,7 @@ public class MainActivity extends TrackedActivity {
     @OptionsItem
     void action_infoSelected() {
         Intent intent = new Intent(this, InfoActivity_.class);
+        intent.setPackage(this.getPackageName());
         startActivity(intent);
     }
 
@@ -200,7 +196,7 @@ public class MainActivity extends TrackedActivity {
                 editor.remove(DOWNLOAD_STRING_PREF + i);
                 editor.putString(DOWNLOAD_STRING_PREF + i, result.get(i));
             }
-            editor.commit();
+            editor.apply();
             spinner.setSelection(0);
         } else {
             Toast.makeText(MainActivity.this,
