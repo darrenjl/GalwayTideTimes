@@ -10,8 +10,8 @@ android {
         applicationId "com.galwaytidetimes"
         minSdkVersion 23
         targetSdkVersion 28
-        versionCode 14
-        versionName "2.11"
+        versionCode 15
+        versionName "2.12"
         testInstrumentationRunner "android.support.test.runner.AndroidJUnitRunner"
     }
     buildTypes {
