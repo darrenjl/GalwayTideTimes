@@ -57,7 +57,7 @@ public class TidesService {
                             .equalsIgnoreCase("description")) {
                         if (insideItem) {
                             next = xpp.nextText();
-                            Pattern ptrn = Pattern.compile("(\\d{2}:\\d{2}\\s-\\s)(Low|High)(\\sTide\\s\\(\\d.\\d{2}m\\))");
+                            Pattern ptrn = Pattern.compile("(\\d{2}:\\d{2}\\s-\\s)(Low|High)(\\sTide\\s\\(\\d.\\d{1,2}m\\))");
                             Matcher mtchr = ptrn.matcher(next);
                             StringBuilder timesStringBuilder = new StringBuilder();
                             while (mtchr.find()) {
