@@ -1,11 +1,8 @@
 package com.galwaytidetimes.service;
 
-import com.galwaytidetimes.MainActivity;
+import android.os.Handler;
+import android.os.Looper;
 
-import org.androidannotations.annotations.Background;
-import org.androidannotations.annotations.EBean;
-import org.androidannotations.annotations.RootContext;
-import org.androidannotations.annotations.UiThread;
 import org.xmlpull.v1.XmlPullParser;
 import org.xmlpull.v1.XmlPullParserException;
 import org.xmlpull.v1.XmlPullParserFactory;
@@ -15,46 +12,64 @@ import java.io.InputStream;
 import java.net.MalformedURLException;
 import java.net.URL;
 import java.util.ArrayList;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
-@EBean
+
 public class TidesService {
 
-    @RootContext
-    MainActivity mainActivity;
+    // Executor for background tasks
+    private final ExecutorService executor = Executors.newSingleThreadExecutor();
+    // Handler to post results back to the main thread
+    private final Handler mainThreadHandler = new Handler(Looper.getMainLooper());
+
+    // Callback interface to communicate with the UI
+    public interface TidesServiceCallback {
+        void onDownloadComplete(ArrayList<String> items);
+    }
 
     private InputStream getInputStream(URL url) {
         try {
             return url.openConnection().getInputStream();
         } catch (IOException e) {
+            e.printStackTrace();
             return null;
         }
     }
 
-    @Background
-    public void downloadTideTimes() {
+    // Public method to start the download
+    public void downloadTideTimes(TidesServiceCallback callback) {
+        executor.execute(() -> {
+            ArrayList<String> itemList = doInBackground();
+            mainThreadHandler.post(() -> callback.onDownloadComplete(itemList));
+        });
+    }
+
+    // The actual background logic, now in a private method
+    private ArrayList<String> doInBackground() {
         ArrayList<String> itemList = new ArrayList<>();
         String next;
         try {
-            URL url = new URL(
-                    "https://www.tidetimes.org.uk/galway-tide-times-7.rss");
-            XmlPullParserFactory factory = XmlPullParserFactory
-                    .newInstance();
+            URL url = new URL("https://www.tidetimes.org.uk/galway-tide-times-7.rss");
+            XmlPullParserFactory factory = XmlPullParserFactory.newInstance();
             factory.setNamespaceAware(false);
             XmlPullParser xpp = factory.newPullParser();
-            xpp.setInput(getInputStream(url), "UTF_8");
-            boolean insideItem = false;
 
-            // Returns the type of current event: START_TAG, END_TAG, etc..
+            InputStream inputStream = getInputStream(url);
+            if (inputStream == null) {
+                return itemList; // Return empty list if stream is null
+            }
+            xpp.setInput(inputStream, "UTF_8");
+
+            boolean insideItem = false;
             int eventType = xpp.getEventType();
             while (eventType != XmlPullParser.END_DOCUMENT) {
                 if (eventType == XmlPullParser.START_TAG) {
-
                     if (xpp.getName().equalsIgnoreCase("item")) {
                         insideItem = true;
-                    } else if (xpp.getName()
-                            .equalsIgnoreCase("description")) {
+                    } else if (xpp.getName().equalsIgnoreCase("description")) {
                         if (insideItem) {
                             next = xpp.nextText();
                             Pattern ptrn = Pattern.compile("(\\d{2}:\\d{2}\\s-\\s)(Low|High)(\\sTide\\s\\(\\d.\\d{1,2}m\\))");
@@ -68,32 +83,23 @@ public class TidesService {
                                 timesStringBuilder.append(match);
                             }
                             String item = timesStringBuilder.toString();
-                            itemList.add(item);
+                            if (!item.isEmpty()) {
+                                itemList.add(item);
+                            }
                         }
-                    } else if (eventType == XmlPullParser.END_TAG
-                            && xpp.getName().equalsIgnoreCase("item")) {
-                        insideItem = false;
                     }
+                } else if (eventType == XmlPullParser.END_TAG && xpp.getName().equalsIgnoreCase("item")) {
+                    insideItem = false;
                 }
                 eventType = xpp.next(); // move to next element
             }
-        } catch (MalformedURLException e) {
+        } catch (XmlPullParserException | IOException e) {
             e.printStackTrace();
-        } catch (XmlPullParserException e) {
-            e.printStackTrace();
-        } catch (IOException e) {
-            e.printStackTrace();
+            // In case of error, return the list which might be partially filled or empty
         } catch (IllegalArgumentException e) {
             e.printStackTrace();
-            return;
+            return itemList; // Return empty list on error
         }
-        this.updateUI(itemList);
+        return itemList;
     }
-
-    @UiThread
-    void updateUI(ArrayList<String> items) {
-        mainActivity.handleDownloadResults(items);
-    }
-
-
 }

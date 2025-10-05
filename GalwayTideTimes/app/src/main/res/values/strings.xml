@@ -12,4 +12,5 @@
 	<string name="no">No</string>
     <string name="rate_app_text">If you enjoy using %1$s, please take a moment to rate it. Thanks for your support!</string>
     <string name="google_play_launched">Google Play will be launched, once the app is on the market.</string>
+    <string name="blackrock">Blackrock</string>
 </resources>

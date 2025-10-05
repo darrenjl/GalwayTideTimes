@@ -10,22 +10,15 @@ import android.net.NetworkInfo;
 import android.os.Bundle;
 import android.text.Html;
 import android.text.method.LinkMovementMethod;
+import android.view.Menu;
+import android.view.MenuItem;
 import android.view.View;
 import android.widget.AdapterView;
 import android.widget.ArrayAdapter;
-import android.widget.RelativeLayout;
-import android.widget.Spinner;
-import android.widget.TextView;
 import android.widget.Toast;
 
+import com.galwaytidetimes.databinding.ActivityMainBinding;
 import com.galwaytidetimes.service.TidesService;
-
-import org.androidannotations.annotations.AfterViews;
-import org.androidannotations.annotations.Bean;
-import org.androidannotations.annotations.EActivity;
-import org.androidannotations.annotations.OptionsItem;
-import org.androidannotations.annotations.OptionsMenu;
-import org.androidannotations.annotations.ViewById;
 
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
@@ -34,34 +27,35 @@ import java.util.Date;
 import java.util.List;
 import java.util.Stack;
 
-@EActivity(R.layout.activity_main)
-@OptionsMenu(R.menu.main)
-public class MainActivity extends Activity {
+public class MainActivity extends Activity implements TidesService.TidesServiceCallback {
+
+    private ActivityMainBinding binding;
 
     private String description;
     private ArrayList<String> items;
 
-    @Bean
     TidesService tidesService;
 
-    @ViewById(R.id.textView1)
-    TextView descriptionTextView;
-    
-    @ViewById(R.id.main_layout)
-    RelativeLayout mainLayout;
-
     private ProgressDialog mProgress;
-    private Spinner spinner;
     private Stack<Integer> previousDaysStack;
     private int currentDay;
     private boolean newlyCreated;
     private boolean backSelection;
     private SharedPreferences sharedPref;
-    private static String DOWNLOAD_TIME_PREF = "com.galwaytidetimes.downloadTime";
-    private static String DOWNLOAD_STRING_PREF = "com.galwaytidetimes.downloadString";
-    private static String CURRENT_DAY_PREF = "com.galwaytidetimes.currentDay";
+    private static final String DOWNLOAD_TIME_PREF = "com.galwaytidetimes.downloadTime";
+    private static final String DOWNLOAD_STRING_PREF = "com.galwaytidetimes.downloadString";
+    private static final String CURRENT_DAY_PREF = "com.galwaytidetimes.currentDay";
 
-    @AfterViews
+    @Override
+    protected void onCreate(Bundle savedInstanceState) {
+        super.onCreate(savedInstanceState);
+        binding = ActivityMainBinding.inflate(getLayoutInflater());
+        setContentView(binding.getRoot());
+
+        tidesService = new TidesService();
+        initialise();
+    }
+
     public void initialise() {
         previousDaysStack = new Stack<>();
         backSelection = false;
@@ -86,7 +80,7 @@ public class MainActivity extends Activity {
             super.onBackPressed();
         else {
             backSelection = true;
-            spinner.setSelection(previousDaysStack.pop());
+            binding.spinner.setSelection(previousDaysStack.pop());
         }
     }
 
@@ -95,7 +89,6 @@ public class MainActivity extends Activity {
         SimpleDateFormat df = new SimpleDateFormat("dd-MMM-yyyy");
         SimpleDateFormat df2 = new SimpleDateFormat("dd-MMM-yyyy (EEE)");
         String formattedDate = df.format(c.getTime());
-        spinner = findViewById(R.id.spinner);
         List<String> list = new ArrayList<>();
         if (items.size() > 0) {
             list.add(formattedDate + " (Today)");
@@ -108,8 +101,8 @@ public class MainActivity extends Activity {
                 android.R.layout.simple_spinner_item, list);
         dataAdapter
                 .setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item);
-        spinner.setAdapter(dataAdapter);
-        spinner.setOnItemSelectedListener(new CustomOnItemSelectedListener());
+        binding.spinner.setAdapter(dataAdapter);
+        binding.spinner.setOnItemSelectedListener(new CustomOnItemSelectedListener());
     }
 
     private void download() {
@@ -126,8 +119,8 @@ public class MainActivity extends Activity {
                 items.add(sharedPref.getString(DOWNLOAD_STRING_PREF + i,
                         "Sorry not available"));
             }
-            descriptionTextView.setText(Html.fromHtml(items.get(0)));
-            descriptionTextView.setMovementMethod(LinkMovementMethod
+            binding.textView1.setText(Html.fromHtml(items.get(0)));
+            binding.textView1.setMovementMethod(LinkMovementMethod
                     .getInstance());
             addItemsToSpinner();
             if (items.size() < 7)
@@ -138,26 +131,42 @@ public class MainActivity extends Activity {
             return;
         }
         if (isNetworkConnected()) {
-            // the init state of progress dialog
             mProgress = new ProgressDialog(this, ProgressDialog.THEME_HOLO_DARK);
             mProgress.setTitle("Loading");
             mProgress.setMessage("Please wait...");
             mProgress.show();
-            tidesService.downloadTideTimes();
+            tidesService.downloadTideTimes(this);
         } else {
             Toast.makeText(this, "No working internet connection available.",
                     Toast.LENGTH_LONG).show();
         }
     }
 
-    @OptionsItem
+    @Override
+    public boolean onCreateOptionsMenu(Menu menu) {
+        getMenuInflater().inflate(R.menu.main, menu);
+        return true;
+    }
+
+    @Override
+    public boolean onOptionsItemSelected(MenuItem item) {
+        int itemId = item.getItemId();
+        if (itemId == R.id.action_info) {
+            action_infoSelected();
+            return true;
+        } else if (itemId == R.id.action_refresh) {
+            action_refreshSelected();
+            return true;
+        }
+        return super.onOptionsItemSelected(item);
+    }
+
     void action_infoSelected() {
-        Intent intent = new Intent(this, InfoActivity_.class);
+        Intent intent = new Intent(this, InfoActivity.class);
         intent.setPackage(this.getPackageName());
         startActivity(intent);
     }
 
-    @OptionsItem
     void action_refreshSelected() {
         download();
     }
@@ -165,13 +174,11 @@ public class MainActivity extends Activity {
     private boolean isNetworkConnected() {
         ConnectivityManager cm = (ConnectivityManager) getSystemService(Context.CONNECTIVITY_SERVICE);
         NetworkInfo ni = cm.getActiveNetworkInfo();
-        if (ni == null) {
-            return false;
-        } else
-            return true;
+        return ni != null && ni.isConnected();
     }
 
-    public void handleDownloadResults(ArrayList<String> result) {
+    @Override
+    public void onDownloadComplete(ArrayList<String> result) {
         items = result;
 
         if (result != null && result.size() > 0) {
@@ -181,10 +188,10 @@ public class MainActivity extends Activity {
                         "No more information available, please try again later.",
                         Toast.LENGTH_LONG).show();
             description = result.get(0);
-            descriptionTextView.setText(Html.fromHtml(description));
-            descriptionTextView.setMovementMethod(LinkMovementMethod
+            binding.textView1.setText(Html.fromHtml(description));
+            binding.textView1.setMovementMethod(LinkMovementMethod
                     .getInstance());
-            if (mProgress.isShowing()) {
+            if (mProgress != null && mProgress.isShowing()) {
                 mProgress.dismiss();
             }
             SharedPreferences.Editor editor = sharedPref.edit();
@@ -192,25 +199,23 @@ public class MainActivity extends Activity {
             editor.putString(DOWNLOAD_STRING_PREF, description);
             editor.putInt(DOWNLOAD_STRING_PREF + "size", result.size());
             for (int i = 0; i < result.size(); i++) {
-
                 editor.remove(DOWNLOAD_STRING_PREF + i);
                 editor.putString(DOWNLOAD_STRING_PREF + i, result.get(i));
             }
             editor.apply();
-            spinner.setSelection(0);
+            binding.spinner.setSelection(0);
         } else {
             Toast.makeText(MainActivity.this,
                     "There was a problem reading from the server.",
                     Toast.LENGTH_LONG).show();
             description = "No data could be read from the sever, please refresh to try again.";
-            descriptionTextView.setText(Html.fromHtml(description));
-            descriptionTextView.setMovementMethod(LinkMovementMethod
+            binding.textView1.setText(Html.fromHtml(description));
+            binding.textView1.setMovementMethod(LinkMovementMethod
                     .getInstance());
-            if (mProgress.isShowing()) {
+            if (mProgress != null && mProgress.isShowing()) {
                 mProgress.dismiss();
             }
         }
-
     }
 
     private class CustomOnItemSelectedListener implements
@@ -220,15 +225,15 @@ public class MainActivity extends Activity {
                                    long id) {
             if (items != null && items.size() > 0) {
                 description = items.get(pos);
-                descriptionTextView.setText(Html.fromHtml(description));
-                descriptionTextView.setMovementMethod(LinkMovementMethod
+                binding.textView1.setText(Html.fromHtml(description));
+                binding.textView1.setMovementMethod(LinkMovementMethod
                         .getInstance());
                 if (newlyCreated) {
                     newlyCreated = false;
                     return;
                 }
                 if (!backSelection) {
-                    previousDaysStack.push(Integer.valueOf(currentDay));
+                    previousDaysStack.push(currentDay);
                     currentDay = pos;
                 } else
                     backSelection = false;

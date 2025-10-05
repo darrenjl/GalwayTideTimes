@@ -1,3 +1,7 @@
+# =========================================
+# Android Studio / IntelliJ
+# =========================================
+
 # built application files
 *.apk
 *.ap_
@@ -18,3 +22,79 @@ local.properties
 # Eclipse project files
 .classpath
 .project
+
+# User-specific machine and IDE settings
+*.iml
+.idea/
+.idea/caches/
+.idea/libraries/
+.idea/modules.xml
+.idea/workspace.xml
+.idea/navEditor.xml
+.idea/assetWizardSettings.xml
+
+# =========================================
+# Gradle
+# =========================================
+
+# Gradle cache
+.gradle/
+
+# Local configuration file (contains SDK path and other machine-specific details)
+# This file should NEVER be committed.
+local.properties
+
+# =========================================
+# Build Output
+# =========================================
+
+# Build directories for all modules
+build/
+*/build/
+
+# Generated files
+/captures/
+.externalNativeBuild/
+.cxx/
+
+# Lint reports and baselines
+lint-baseline.xml
+lint/
+
+# Built application files
+*.apk
+*.aab
+*.ap_
+
+# = a=======================================
+# Other Generated Files
+# =========================================
+
+# Files for the ART/Dalvik VM
+*.dex
+
+# Java class files
+*.class
+
+# Log files
+*.log
+
+# =========================================
+# Keystore / Signing
+# =========================================
+
+# Keystore files containing signing keys should NEVER be committed.
+# Uncomment these lines if you have keystore files in your project directory.
+# *.jks
+# *.keystore
+# keystore.properties
+
+# =========================================
+# OS-specific files
+# =========================================
+
+# macOS
+.DS_Store
+
+# Windows
+Thumbs.db
