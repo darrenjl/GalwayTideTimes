@@ -1,7 +1,5 @@
 package com.galwaytidetimes;
 
-import android.app.Activity;
-import android.app.ProgressDialog;
 import android.content.Context;
 import android.content.Intent;
 import android.content.SharedPreferences;
@@ -27,8 +25,7 @@ import java.util.Date;
 import java.util.List;
 import java.util.Stack;
 
-public class MainActivity extends Activity implements TidesService.TidesServiceCallback {
-
+public class MainActivity extends androidx.appcompat.app.AppCompatActivity implements TidesService.TidesServiceCallback {
     private ActivityMainBinding binding;
 
     private String description;
@@ -36,7 +33,6 @@ public class MainActivity extends Activity implements TidesService.TidesServiceC
 
     TidesService tidesService;
 
-    private ProgressDialog mProgress;
     private Stack<Integer> previousDaysStack;
     private int currentDay;
     private boolean newlyCreated;
@@ -51,6 +47,10 @@ public class MainActivity extends Activity implements TidesService.TidesServiceC
         super.onCreate(savedInstanceState);
         binding = ActivityMainBinding.inflate(getLayoutInflater());
         setContentView(binding.getRoot());
+
+        androidx.appcompat.widget.Toolbar toolbar = findViewById(R.id.toolbar);
+        setSupportActionBar(toolbar);
+
 
         tidesService = new TidesService();
         initialise();
@@ -131,10 +131,7 @@ public class MainActivity extends Activity implements TidesService.TidesServiceC
             return;
         }
         if (isNetworkConnected()) {
-            mProgress = new ProgressDialog(this, ProgressDialog.THEME_HOLO_DARK);
-            mProgress.setTitle("Loading");
-            mProgress.setMessage("Please wait...");
-            mProgress.show();
+            binding.progressBar.setVisibility(View.VISIBLE);
             tidesService.downloadTideTimes(this);
         } else {
             Toast.makeText(this, "No working internet connection available.",
@@ -175,10 +172,11 @@ public class MainActivity extends Activity implements TidesService.TidesServiceC
         ConnectivityManager cm = (ConnectivityManager) getSystemService(Context.CONNECTIVITY_SERVICE);
         NetworkInfo ni = cm.getActiveNetworkInfo();
         return ni != null && ni.isConnected();
-    }
+    } 
 
     @Override
     public void onDownloadComplete(ArrayList<String> result) {
+        binding.progressBar.setVisibility(View.GONE);
         items = result;
 
         if (result != null && result.size() > 0) {
@@ -191,9 +189,7 @@ public class MainActivity extends Activity implements TidesService.TidesServiceC
             binding.textView1.setText(Html.fromHtml(description));
             binding.textView1.setMovementMethod(LinkMovementMethod
                     .getInstance());
-            if (mProgress != null && mProgress.isShowing()) {
-                mProgress.dismiss();
-            }
+
             SharedPreferences.Editor editor = sharedPref.edit();
             editor.putLong(DOWNLOAD_TIME_PREF, new Date().getTime());
             editor.putString(DOWNLOAD_STRING_PREF, description);
@@ -212,9 +208,6 @@ public class MainActivity extends Activity implements TidesService.TidesServiceC
             binding.textView1.setText(Html.fromHtml(description));
             binding.textView1.setMovementMethod(LinkMovementMethod
                     .getInstance());
-            if (mProgress != null && mProgress.isShowing()) {
-                mProgress.dismiss();
-            }
         }
     }
 
